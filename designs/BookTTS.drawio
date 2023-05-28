@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-05-28T08:55:03.135Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36" etag="XHJoXt0jndePxSgnympG" version="21.3.4" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2023-05-28T08:57:17.225Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36" etag="6sZABzDS1qz_nquwjzHi" version="21.3.4" type="github" pages="2">
   <diagram id="0_uWrMZglboZPw79OCQA" name="BookTTSArchitecture">
     <mxGraphModel dx="1666" dy="1773" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
       <root>
@@ -66,16 +66,16 @@
         <mxCell id="lK4s5zcnrLTSdLD98zfU-2" value="index" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="200" y="290" width="290" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="lK4s5zcnrLTSdLD98zfU-3" value="Show all uploaded files" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-2">
+        <mxCell id="lK4s5zcnrLTSdLD98zfU-3" value="Show all uploaded items" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-2">
           <mxGeometry y="30" width="290" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="lK4s5zcnrLTSdLD98zfU-4" value="Show uploaded file status (converting, uploading, etc)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-2">
+        <mxCell id="lK4s5zcnrLTSdLD98zfU-4" value="Show uploaded items status (converting, uploading, etc)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-2">
           <mxGeometry y="60" width="290" height="40" as="geometry" />
         </mxCell>
         <mxCell id="lK4s5zcnrLTSdLD98zfU-5" value="Button on each file to go to item edit page" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-2">
           <mxGeometry y="100" width="290" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="lK4s5zcnrLTSdLD98zfU-6" value="edit/&amp;lt;item_id&amp;gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="lK4s5zcnrLTSdLD98zfU-6" value="item/&amp;lt;item_id&amp;gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="690" y="160" width="290" height="130" as="geometry" />
         </mxCell>
         <mxCell id="lK4s5zcnrLTSdLD98zfU-7" value="Show the item info, config" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-6">
@@ -99,7 +99,7 @@
         <mxCell id="lK4s5zcnrLTSdLD98zfU-15" value="Button to upload chosen file" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-13">
           <mxGeometry y="60" width="290" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="lK4s5zcnrLTSdLD98zfU-16" value="Text field showing location of the uploaded file" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-13">
+        <mxCell id="lK4s5zcnrLTSdLD98zfU-16" value="List of config for the file (service to upload converted audio track to, nickname for this file, description, etc)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="lK4s5zcnrLTSdLD98zfU-13">
           <mxGeometry y="100" width="290" height="30" as="geometry" />
         </mxCell>
         <mxCell id="lK4s5zcnrLTSdLD98zfU-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="lK4s5zcnrLTSdLD98zfU-4" target="lK4s5zcnrLTSdLD98zfU-13">
