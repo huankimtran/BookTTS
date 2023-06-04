@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2023-05-28T08:57:54.195Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36" etag="34XD1ZXJllQkqMiVcRlR" version="21.3.4" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2023-06-04T21:33:27.322Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36" etag="UAggdjEVhX0Ziq0wOjzu" version="21.3.7" type="github" pages="2">
   <diagram id="0_uWrMZglboZPw79OCQA" name="BookTTSArchitecture">
-    <mxGraphModel dx="1666" dy="1773" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
+    <mxGraphModel dx="1435" dy="1778" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
