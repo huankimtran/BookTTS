@@ -1,3 +1,4 @@
+import json
 import logging
 from argparse import ArgumentParser, Namespace
 from io import BytesIO, StringIO
@@ -125,7 +126,9 @@ def split_to_chunks(text: str, sentence_cleaner: Callable[[str], str], chunk_max
         chunks.extend(sentence_as_chunks)
 
     if args.chunk_file_path:
-        Path(args.chunk_file_path).write_text('\n'.join(repr(ch) for ch in chunks))
+        Path(args.chunk_file_path).write_text(
+            '\n'.join(repr(ch) for ch in chunks)
+        )
 
     return chunks
 
@@ -247,8 +250,14 @@ def convert_chunks_to_speeches(chunks: List[str], tts_converter: Callable[[str],
                     speeches.pop()
                     speeches.append(current_speech)
                 except Exception:
+                    try:
+                        speeches.append(tts_converter(chunk))
+                    except:
+                        # Should not fail here so output the error with some log
+                        logger.error(f'Error while running text to speech on:\n- Left Chunks: {repr(left_chunk)}\n- Current chunk: {repr(chunk)}')
+                        raise
                     left_chunk = chunk
-                    speeches.append(tts_converter(chunk))
+
 
             logger.debug(repr(left_chunk))
         
@@ -260,15 +269,22 @@ def convert_chunks_to_speeches(chunks: List[str], tts_converter: Callable[[str],
 
 
 def convert_book_to_speech(args: Namespace):
-    logger.info('Converting PDF to text...')
-    converted_pdf = convert_pdf_to_text(
-        args.pdf_converter_name,
-        pdf_file_path=args.path_to_input_doc,
-        text_file_path=args.text_file_path,
-    )
+
+    if args.path_to_input_doc:
+        logger.info('Converting PDF to text...')
+        full_text = convert_pdf_to_text(
+            args.pdf_converter_name,
+            pdf_file_path=args.path_to_input_doc,
+            text_file_path=args.pdf_converted_text_file_path,
+        )
+    elif args.input_text:
+        full_text = args.input_text
+        logger.info(f'Going to use input text: {repr(full_text)}')
+    elif args.input_text_file_path:
+        full_text = Path(args.input_text_file_path).read_text()
 
     logger.info('Splitting full text into chunks...')
-    chunks = split_to_chunks(converted_pdf, clean_sentence, args.chunk_max_size, args)
+    chunks = split_to_chunks(full_text, clean_sentence, args.chunk_max_size, args)
 
 
     if args.path_to_output_speech is None:
@@ -290,8 +306,16 @@ def convert_book_to_speech(args: Namespace):
 def get_args_parser() -> ArgumentParser:
     parser = ArgumentParser('BookTTS - text to speech')
     parser.add_argument(
-        'path_to_input_doc',
+        '-t', '--input_text', default=None,
+        help="A text to convert to speech"
+    )
+    parser.add_argument(
+        '-i', '--path_to_input_doc', default=None,
         help="Path to the input document (*.pdf,)"
+    )
+    parser.add_argument(
+        '-it', '--input_text_file_path', default=None,
+        help="A path to a text file to be used for conversion",
     )
     parser.add_argument(
         '-o', '--path_to_output_speech', default=None,
@@ -314,7 +338,7 @@ def get_args_parser() -> ArgumentParser:
         help="The name of the text to speech model to use",
     )
     parser.add_argument(
-        '-tfp', '--text_file_path', default=None,
+        '-cptfp', '--pdf_converted_text_file_path', default=None,
         help="Path to a file to save the text",
     )
     parser.add_argument(
@@ -359,4 +383,5 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
 
     if all(h not in remaining_args for h in ('-h', '--help')):
+        logger.info(f'Running with options:{json.dumps({ k:v for k,v in vars(args).items() if k != "func"}, indent=2)}')
         args.func(args)
