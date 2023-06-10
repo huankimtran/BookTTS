@@ -1,0 +1,13 @@
+version: '2.6'
+services:
+  tensorflowtts:
+    build: .
+    volumes:
+      - .:/workspace
+    # If you want to use gpu to do inference, uncomment the below.
+    # runtime: nvidia
+    tty: true
+    command: /bin/bash
+    environment:
+      # Pass this variable directly form the shell where the docker compose command was run
+      - CUDA_VISIBLE_DEVICES  
