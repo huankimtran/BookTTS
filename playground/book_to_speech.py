@@ -2,10 +2,9 @@ import logging
 from argparse import ArgumentParser, Namespace
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import regex as re
-import spacy
 import soundfile as sf
 import numpy as np
 
@@ -14,13 +13,24 @@ from tqdm import tqdm
 CPU_MAX_CHAR_COUNT = 200
 
 
-def convert_pdf_to_text(pdf_converter: str, pdf_file_path: str) -> str:
+def convert_pdf_to_text(pdf_converter: str, pdf_file_path: str, text_file_path: Optional[str] = None) -> str:
     if pdf_converter.lower() == 'textract':
+
         import textract
+
         text = textract.process(pdf_file_path)
-        return text.decode('utf-8')
+
+        result = text.decode('utf-8')
+
+        if text_file_path:
+            Path(text_file_path).write_text(result)
+        
+        return result
+
     elif pdf_converter.lower() == 'pypdf2':
+
         import PyPDF2
+
         with open(pdf_file_path, 'rb') as pdf_file:
 
             in_mem_text_file = StringIO()
@@ -34,15 +44,45 @@ def convert_pdf_to_text(pdf_converter: str, pdf_file_path: str) -> str:
             for page in pdf_reader.pages:
                 in_mem_text_file.write(page.extract_text())
 
-            return in_mem_text_file.getvalue()
+            result = in_mem_text_file.getvalue()
+
+            if text_file_path:
+                Path(text_file_path).write_text(result)
+
+            return result
 
     raise ValueError(f'Cannot find pdf2text converter {args.pdf_converter}')
 
 
-def split_full_text_to_sentences(text: str) -> List[str]:
-    nlp = spacy.load('en_core_web_sm')
-    tokens = nlp(text)
-    return [ f'{sent.text.strip()}' for sent in tokens.sents]
+def split_full_text_to_sentences(text: str, sentence_splitter_name: str, args: Namespace) -> List[str]:
+
+    sentences = None
+
+    if sentence_splitter_name == 'space-en_core_web_sm':
+        import spacy
+        nlp = spacy.load('en_core_web_sm')
+        tokens = nlp(text)
+        sentences = [ f'{sent.text.strip()}' for sent in tokens.sents]
+    elif sentence_splitter_name == 'nltk-tokenize':
+        from nltk import tokenize
+        sentences = tokenize.sent_tokenize(text)
+    elif sentence_splitter_name == 'nltk-tokenizers/punkt/english.pickle':
+        import nltk.data
+        tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+        sentences = tokenizer.tokenize(text)
+    elif sentence_splitter_name == 'pysbd':
+        import pysbd
+        seg = pysbd.Segmenter(language="en", clean=False)
+        sentences = seg.segment(text)
+    
+    if sentences is None:
+        raise ValueError(f'Cannot found text splitter with name {sentence_splitter_name}')
+    
+    if args.sentence_file_path:
+        Path(args.sentence_file_path).write_text('\n'.join(repr(s) for s in sentences))
+
+    return sentences
+
 
 
 def is_valid_chunk(chunk: str) -> bool:
@@ -74,8 +114,8 @@ def sentence_to_chunks(sentence: str, chunk_max_size: int) -> List[str]:
     return chunk_list
 
 
-def split_to_chunks(text: str, sentence_cleaner: Callable[[str], str], chunk_max_size: int) -> List[str]:
-    sentences = split_full_text_to_sentences(text)
+def split_to_chunks(text: str, sentence_cleaner: Callable[[str], str], chunk_max_size: int, args: Namespace) -> List[str]:
+    sentences = split_full_text_to_sentences(text, args.sentence_splitter_name, args)
     cleaned_sentences = [ sentence_cleaner(s) for s in sentences]
 
     chunks = []
@@ -83,6 +123,9 @@ def split_to_chunks(text: str, sentence_cleaner: Callable[[str], str], chunk_max
     for sentence in cleaned_sentences:
         sentence_as_chunks = sentence_to_chunks(sentence, chunk_max_size)
         chunks.extend(sentence_as_chunks)
+
+    if args.chunk_file_path:
+        Path(args.chunk_file_path).write_text('\n'.join(repr(ch) for ch in chunks))
 
     return chunks
 
@@ -181,19 +224,62 @@ def join_speech_chunks(speech_chunks: List[BytesIO]) -> BytesIO:
 
     return output_file_obj
 
+def convert_chunks_to_speeches(chunks: List[str], tts_converter: Callable[[str], BytesIO], args: Namespace) -> List[BytesIO]:
+
+    if args.tts_input_mode == 'squeeze':
+        # Try to make the squeeze as many chunks to the input of the model as possible so not to
+        # lose speech information (where to stop, where to continue, what tone, etc) 
+
+        left_chunk = None
+        speeches = []
+
+        for chunk in tqdm(chunks):
+            if left_chunk is None:
+                left_chunk = chunk
+                speeches.append(tts_converter(left_chunk))
+            else:
+                # Try to squeeze
+                left_chunk += ' ' + chunk
+
+                try:
+                    current_speech = tts_converter(left_chunk)
+                    # Can squeeze so replace last chunk
+                    speeches.pop()
+                    speeches.append(current_speech)
+                except Exception:
+                    left_chunk = chunk
+                    speeches.append(tts_converter(chunk))
+
+            logger.debug(repr(left_chunk))
+        
+        return speeches
+    elif args.tts_input_mode == 'per-chunk':
+        return [ tts_converter(chunk) for chunk in chunks ]
+
+    raise ValueError(f'Cannot find text to speech input mode {args.tts_input_mode}')
+
+
 def convert_book_to_speech(args: Namespace):
     logger.info('Converting PDF to text...')
-    converted_pdf = convert_pdf_to_text(args.pdf_converter_name, pdf_file_path=args.path_to_input_doc)
+    converted_pdf = convert_pdf_to_text(
+        args.pdf_converter_name,
+        pdf_file_path=args.path_to_input_doc,
+        text_file_path=args.text_file_path,
+    )
 
     logger.info('Splitting full text into chunks...')
-    chunks = split_to_chunks(converted_pdf, chunk_max_size=args.chunk_max_size, sentence_cleaner=clean_sentence)
+    chunks = split_to_chunks(converted_pdf, clean_sentence, args.chunk_max_size, args)
+
+
+    if args.path_to_output_speech is None:
+        return
 
     logger.info('Converting each chunk to speech...')
     tts_converter = get_text_to_speech_converter(args.tts_model_name)
-    chunks_as_speech = [ tts_converter(chunk) for chunk in tqdm(chunks) ]
+    chunks_as_speeches = convert_chunks_to_speeches(chunks, tts_converter, args)
 
     logger.info('Joining chunks into full speech...')
-    in_mem_full_speech = join_speech_chunks(chunks_as_speech)
+    in_mem_full_speech = join_speech_chunks(chunks_as_speeches)
 
     logger.info('Saving down to output file...')
     Path(args.path_to_output_speech).write_bytes(in_mem_full_speech.getvalue())    
@@ -208,12 +294,16 @@ def get_args_parser() -> ArgumentParser:
         help="Path to the input document (*.pdf,)"
     )
     parser.add_argument(
-        'path_to_output_speech', default='doc_speech.wav',
-        help="Path to the output speech for input document",
+        '-o', '--path_to_output_speech', default=None,
+        help="Path to the output speech for input document, if not set, no conversion will be done",
     )
     parser.add_argument(
         '-pcn', '--pdf_converter_name', default='textract',
         help="Name of the pdf to text converter to use",
+    )
+    parser.add_argument(
+        '-spn', '--sentence_splitter_name', default='space-en_core_web_sm',
+        help="Name of the sentence splitter to use",
     )
     parser.add_argument(
         '-cms', '--chunk_max_size', default=CPU_MAX_CHAR_COUNT, type=int,
@@ -222,6 +312,22 @@ def get_args_parser() -> ArgumentParser:
     parser.add_argument(
         '-m', '--tts_model_name', default='fastspeech2',
         help="The name of the text to speech model to use",
+    )
+    parser.add_argument(
+        '-tfp', '--text_file_path', default=None,
+        help="Path to a file to save the text",
+    )
+    parser.add_argument(
+        '-cfp', '--chunk_file_path', default=None,
+        help="Path to a file that will have each chunk saved on a line",
+    )
+    parser.add_argument(
+        '-sfp', '--sentence_file_path', default=None,
+        help="Path to a file that will have each sentence saved on a line",
+    )
+    parser.add_argument(
+        '-tim', '--tts_input_mode', default='per-chunk', type=str,
+        help="The mode in which chunks of text are fed into the input of text to speech model",
     )
     parser.add_argument(
         '-v', '--verbose', default=False, action='store_true',
