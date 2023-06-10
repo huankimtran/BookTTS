@@ -326,7 +326,7 @@ def get_args_parser() -> ArgumentParser:
         help="Path to a file that will have each sentence saved on a line",
     )
     parser.add_argument(
-        '-tim', '--tts_input_mode', default='per-chunk', type=str,
+        '-tim', '--tts_input_mode', default='squeeze', type=str,
         help="The mode in which chunks of text are fed into the input of text to speech model",
     )
     parser.add_argument(
